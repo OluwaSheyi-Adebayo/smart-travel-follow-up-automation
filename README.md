@@ -1,74 +1,49 @@
 # Smart Travel Follow-Up Automation
 
-An automated customer communication system built with n8n, Google Sheets, and Gmail.
+**Making customer travel follow-ups simpler, more timely, and more reliable.**
 
-## 1. Project Overview
+## About the Project
 
-Travel agencies often need to remind customers about upcoming trips and follow up after their return. Managing these communications manually can become difficult, especially when handling multiple customers.
+Smart Travel Follow-Up Automation is a customer communication solution designed for travel agencies to make staying in touch with customers easier and more consistent.
 
-This project automates customer follow-ups by checking trip dates daily and sending timely, personalized emails.
+Managing multiple customer bookings and travel schedules can make it difficult to keep track of important follow-ups. This project addresses that challenge by automating routine communication before and after customers' trips.
 
-## 2. The Problem
+Using customer travel dates, the system automatically sends personalised pre-trip reminders three days before departure and post-trip follow-up emails one day after return.
 
-Manually tracking customer departure and return dates can lead to missed reminders, delayed communication, and poor customer follow-up.
+## Project Objectives
 
-The goal of this project is to reduce manual work and help a travel agency maintain consistent communication with its customers.
+- Reduce the time and effort spent on manual customer follow-ups.
+- Help travellers receive timely reminders before their journeys.
+- Maintain consistent communication after customers return.
+- Minimise missed and repeated follow-up messages.
+- Provide travel agencies with a more organised approach to customer engagement.
 
-## 3. How the Automation Works
+## What the Solution Offers
 
-The workflow runs automatically every day and:
+- **Timely communication:** Customers receive relevant emails based on their travel schedules.
+- **Personalised experience:** Messages are tailored using individual customer information.
+- **Reliable follow-ups:** Previously sent reminders are tracked to prevent unnecessary repetition.
+- **Automated operations:** Routine communication runs without requiring staff to manually monitor every customer's travel dates.
 
-1. Retrieves customer trip records from Google Sheets.
-2. Checks departure and return dates.
-3. Identifies customers due for a reminder.
-4. Sends a pre-trip email three days before departure.
-5. Sends a welcome-back email one day after return.
-6. Checks the Reminder Log to prevent duplicate emails.
-7. Records successfully sent reminders in Google Sheets.
+## Tools Used
 
-## 4. Key Features
+n8n · Google Sheets · Gmail · JavaScript · GitHub
 
-- Automated daily scheduling.
-- Personalized customer email messages.
-- Pre-trip and post-trip communication.
-- Google Sheets integration for customer records.
-- Gmail integration for email delivery.
-- Duplicate reminder prevention.
-- Reminder logging and execution tracking.
-- Africa/Lagos timezone configuration.
+## Project Outcome
 
-## 5. Technology Stack
+The project demonstrates how practical automation can simplify everyday business operations, improve customer communication, and reduce repetitive administrative work.
 
-- **n8n:** Workflow automation and orchestration.
-- **Google Sheets:** Customer trip records and reminder logs.
-- **Gmail:** Automated email delivery.
-- **JavaScript:** Date calculations, data processing, and duplicate prevention.
+It also provides a foundation that can be extended to support more customer follow-up processes as a travel business grows.
 
-## 6. Testing and Validation
+## Project Resources
 
-The workflow was tested to confirm that:
+- **Workflow:** Exported n8n automation.
+- **Documentation:** Workflow architecture, implementation details, and setup instructions.
+- **Screenshots:** Visual evidence of the workflow and testing.
 
-- Customer records are retrieved and processed correctly.
-- Departure and return dates are evaluated against the reminder rules.
-- Eligible customers receive the appropriate email.
-- Sent reminders are recorded in the Reminder Log.
-- Previously sent reminders are skipped during subsequent executions.
+## Author
 
-## 7. Project Status
+**Sheyi**
 
-The workflow has been published in n8n and configured to run daily.
-
-## 8. Skills Demonstrated
-
-- Workflow design and automation.
-- Working with external application integrations.
-- Data processing and conditional logic.
-- JavaScript within automation workflows.
-- Date and timezone handling.
-- Duplicate prevention and execution logging.
-- Testing and troubleshooting automation workflows.
-
-## 9. Privacy and Security
-
-Customer records, personal email addresses, authentication credentials, and API tokens are not included in this public repository.
+AI Automation & Workflow Development Portfolio | 2026
 
