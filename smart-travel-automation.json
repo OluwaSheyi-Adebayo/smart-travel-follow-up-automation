@@ -1,0 +1,488 @@
+{
+  "name": "Smart Travel Follow-Up Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "0b9ef13c-995e-4d51-b27d-0cd5125868ba",
+      "name": "When clicking ‘Execute workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        16,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst AGENCY_NAME = \"TopTravels & Co.\";\nconst TIME_ZONE = \"Africa/Lagos\";\n\nfunction normalizeKey(key) {\n  return key.toLowerCase().replace(/[\\s_-]/g, \"\");\n}\n\nfunction getValue(data, possibleNames) {\n  const entry = Object.entries(data).find(([key]) =>\n    possibleNames.map(normalizeKey).includes(normalizeKey(key))\n  );\n  return entry ? entry[1] : \"\";\n}\n\nfunction dateKey(value) {\n  if (!value) return \"\";\n\n  const text = String(value).trim();\n\n  // Handles dates already formatted as YYYY-MM-DD\n  if (/^\\d{4}-\\d{2}-\\d{2}/.test(text)) {\n    return text.slice(0, 10);\n  }\n\n  // Handles other recognizable date formats\n  const date = new Date(value);\n  if (isNaN(date.getTime())) return \"\";\n\n  return new Intl.DateTimeFormat(\"en-CA\", {\n    timeZone: \"UTC\",\n    year: \"numeric\",\n    month: \"2-digit\",\n    day: \"2-digit\"\n  }).format(date);\n}\n\nfunction addDays(dateString, days) {\n  const date = new Date(`${dateString}T00:00:00Z`);\n  date.setUTCDate(date.getUTCDate() + days);\n  return date.toISOString().slice(0, 10);\n}\n\nconst today = new Intl.DateTimeFormat(\"en-CA\", {\n  timeZone: TIME_ZONE,\n  year: \"numeric\",\n  month: \"2-digit\",\n  day: \"2-digit\"\n}).format(new Date());\n\nfunction emailTemplate(name, type, tripDate) {\n  const firstName = name.split(\" \")[0] || \"Traveler\";\n\n  if (type === \"Pre-trip\") {\n    const subject = `Your adventure is almost here, ${firstName}!`;\n\n    const plainText = `Hello ${firstName},\n\nYour upcoming journey is getting closer, and everyone at ${AGENCY_NAME} is excited for you!\n\nWith your departure just three days away, we wanted to check in and help you get ready.\n\nHere are a few things worth confirming:\n- Your passport and travel documents\n- Flight tickets and travel itinerary\n- Accommodation and airport arrangements\n- Your luggage and essential travel items\n\nIf you have any questions or need assistance before departure, please don't hesitate to reach out. We're here to help make your journey as smooth and enjoyable as possible.\n\nThank you for trusting ${AGENCY_NAME} with your travel plans. We wish you a safe, comfortable, and unforgettable trip!\n\nWarm regards,\nThe ${AGENCY_NAME} Team`;\n\n    const html = `\n      <div style=\"background:#f3f6fa;padding:30px 12px;font-family:Arial,sans-serif;color:#263449;\">\n        <div style=\"max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;\">\n          <div style=\"background:#17365d;padding:28px 30px;color:#ffffff;\">\n            <h1 style=\"margin:0;font-size:23px;\">${AGENCY_NAME}</h1>\n            <p style=\"margin:8px 0 0;color:#dce8f5;\">Thoughtful journeys. Meaningful experiences.</p>\n          </div>\n          <div style=\"padding:30px;\">\n            <h2 style=\"color:#17365d;\">Your adventure is almost here, ${firstName}!</h2>\n            <p>Hello ${firstName},</p>\n            <p>Your upcoming journey is getting closer, and we're genuinely excited for you!</p>\n            <p>With your departure just <strong>three days away</strong>, here's a quick checklist to help you prepare:</p>\n            <ul style=\"line-height:1.9;padding-left:22px;\">\n              <li>Passport and other travel documents</li>\n              <li>Flight tickets and travel itinerary</li>\n              <li>Accommodation and airport arrangements</li>\n              <li>Luggage and essential travel items</li>\n            </ul>\n            <p>If you have any questions or need assistance before departure, simply reply to this email. We're here to help.</p>\n            <p>Thank you for trusting us with your travel plans. We wish you a safe, comfortable, and unforgettable journey!</p>\n            <p style=\"margin-top:28px;\">Warm regards,<br><strong>The ${AGENCY_NAME} Team</strong></p>\n          </div>\n          <div style=\"background:#eef3f8;padding:18px 30px;text-align:center;color:#64748b;font-size:12px;\">\n            Making every journey feel a little more special.\n          </div>\n        </div>\n      </div>`;\n\n    return { subject, plainText, html };\n  }\n\n  const subject = `Welcome back, ${firstName}! We'd love to hear about your trip.`;\n\n  const plainText = `Hello ${firstName},\n\nWelcome back!\n\nWe hope your journey was safe, enjoyable, and filled with wonderful memories.\n\nAt ${AGENCY_NAME}, we believe the relationship doesn't end when a trip does. We genuinely care about how your experience went.\n\nWe'd love to hear from you:\n- How was your journey?\n- Did everything go as planned?\n- Is there anything we could have done better?\n\nYour feedback means a lot to us and helps us serve you even better on your next adventure.\n\nThank you once again for choosing ${AGENCY_NAME}. We look forward to helping you plan your next journey!\n\nWarm regards,\nThe ${AGENCY_NAME} Team`;\n\n  const html = `\n    <div style=\"background:#f3f6fa;padding:30px 12px;font-family:Arial,sans-serif;color:#263449;\">\n      <div style=\"max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;\">\n        <div style=\"background:#17365d;padding:28px 30px;color:#ffffff;\">\n          <h1 style=\"margin:0;font-size:23px;\">${AGENCY_NAME}</h1>\n          <p style=\"margin:8px 0 0;color:#dce8f5;\">Thoughtful journeys. Meaningful experiences.</p>\n        </div>\n        <div style=\"padding:30px;\">\n          <h2 style=\"color:#17365d;\">Welcome back, ${firstName}!</h2>\n          <p>Hello ${firstName},</p>\n          <p>We hope your journey was safe, enjoyable, and filled with wonderful memories.</p>\n          <p>At <strong>${AGENCY_NAME}</strong>, we believe our relationship doesn't end when a trip does. We genuinely care about how your experience went.</p>\n          <p>We'd love to hear from you:</p>\n          <ul style=\"line-height:1.9;padding-left:22px;\">\n            <li>How was your journey?</li>\n            <li>Did everything go as planned?</li>\n            <li>Is there anything we could have done better?</li>\n          </ul>\n          <p>Your feedback means a lot to us and helps us serve you even better on your next adventure.</p>\n          <p>Thank you once again for choosing us. We look forward to helping you plan your next journey!</p>\n          <p style=\"margin-top:28px;\">Warm regards,<br><strong>The ${AGENCY_NAME} Team</strong></p>\n        </div>\n        <div style=\"background:#eef3f8;padding:18px 30px;text-align:center;color:#64748b;font-size:12px;\">\n          Making every journey feel a little more special.\n        </div>\n      </div>\n    </div>`;\n\n  return { subject, plainText, html };\n}\n\nreturn $input.all().map(item => {\n  const data = item.json;\n\n  const customerName = String(\n    getValue(data, [\"CustomerName\", \"Customer Name\", \"Name\"])\n  ).trim();\n\n  const email = getValue(data, [\"EmailAddress\", \"Email Address\", \"Email\"]);\n  const departureDate = dateKey(\n    getValue(data, [\"DepartureDate\", \"Departure Date\"])\n  );\n  const returnDate = dateKey(\n    getValue(data, [\"ReturnDate\", \"Return Date\"])\n  );\n\n  const preStatus = String(\n    getValue(data, [\"PreTripStatus\", \"Pre Trip Status\"])\n  ).trim().toLowerCase();\n\n  const postStatus = String(\n    getValue(data, [\"PostTripStatus\", \"Post Trip Status\"])\n  ).trim().toLowerCase();\n\n  let messageType = \"None\";\n  let tripDate = \"\";\n  let subject = \"\";\n  let generatedMessage = \"\";\n  let generatedMessageHtml = \"\";\n\n  if (\n    departureDate &&\n    departureDate === addDays(today, 3) &&\n    preStatus !== \"sent\"\n  ) {\n    messageType = \"Pre-trip\";\n    tripDate = departureDate;\n  } else if (\n    returnDate &&\n    returnDate === addDays(today, -1) &&\n    postStatus !== \"sent\"\n  ) {\n    messageType = \"Post-trip\";\n    tripDate = returnDate;\n  }\n\n  if (messageType !== \"None\") {\n    const message = emailTemplate(customerName || \"Traveler\", messageType, tripDate);\n    subject = message.subject;\n    generatedMessage = message.plainText;\n    generatedMessageHtml = message.html;\n  }\n\n  return {\n    json: {\n      ...data,\n      CustomerName: customerName,\n      EmailAddress: email,\n      MessageType: messageType,\n      TripDate: tripDate,\n      EmailSubject: subject,\n      GeneratedMessage: generatedMessage,\n      GeneratedMessageHtml: generatedMessageHtml\n    }\n  };\n});\n\n"
+      },
+      "id": "1eabf2b6-bf82-4c8e-bb27-eb84899bc07e",
+      "name": "Check Reminder Dates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "e90e1450-e1cb-42e0-b881-082c475684a6",
+              "leftValue": "={{ $json.MessageType }}",
+              "rightValue": "None",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "eb8432f5-b7b5-4792-ba28-fc6a291c0d2b",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        688,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "25c73150-e46b-4043-9286-03b5df0eb2a6",
+              "name": "=CustomerName",
+              "value": "={{ $json.CustomerName }}",
+              "type": "string"
+            },
+            {
+              "id": "e6c98d50-7b4a-4604-8da1-fb0822ea137d",
+              "name": "=MessageType",
+              "value": "={{ $json.MessageType }}",
+              "type": "string"
+            },
+            {
+              "id": "fdc9153d-c6d6-49ff-a122-7039f10fcb73",
+              "name": "=GeneratedMessage",
+              "value": "={{ $json.GeneratedMessage }}",
+              "type": "string"
+            },
+            {
+              "id": "9ce076e6-dfbe-4645-ae71-869eb1596b6a",
+              "name": "=EmailAddress",
+              "value": "={{ $json.EmailAddress }}",
+              "type": "string"
+            },
+            {
+              "id": "29884c4d-c47a-49c6-8d4d-3a2520b301ab",
+              "name": "TripDate",
+              "value": "={{ $('Check Reminder Dates').item.json.MessageType === 'Pre-trip' ? $('Check Reminder Dates').item.json.DepartureDate : $('Check Reminder Dates').item.json.ReturnDate }}",
+              "type": "string"
+            },
+            {
+              "id": "a17d33cc-86af-49ae-84e1-ad8cb57fc726",
+              "name": "ReminderKey",
+              "value": "={{ $json.CustomerName + '|' + $json.MessageType + '|' + $json.TripDate }}",
+              "type": "string"
+            },
+            {
+              "id": "b8c329e0-481b-4639-9d6a-73a6f0ec7bcd",
+              "name": "GeneratedMessageHtml",
+              "value": "={{ $json.GeneratedMessageHtml }}",
+              "type": "string"
+            },
+            {
+              "id": "a040dd8e-0827-412a-805c-006e45038ee0",
+              "name": "EmailSubject",
+              "value": "={{ $json.EmailSubject }}",
+              "type": "string"
+            }
+          ]
+        }
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "d109057a-c725-402f-a24c-15aac5fb33c7",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        912,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Smart Travel Follow-Up Automation — Test Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SPREADSHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Reminder Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SPREADSHEET_ID/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "id": "78bb4257-0dd4-4c2d-8c6c-ac016a0d68a1",
+      "name": "Check Existing Reminder",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1136,
+        224
+      ],
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bSlEeBuKaLwX90jR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nfunction normalizeKey(value) {\n  return String(value ?? \"\").trim().toLowerCase();\n}\n\n// Collect every ReminderKey already stored in the log\nconst loggedKeys = new Set(\n  $input.all()\n    .map(item => normalizeKey(item.json.ReminderKey))\n    .filter(Boolean)\n);\n\n// Retrieve all reminders currently due\nconst remindersToCheck = $('Edit Fields').all();\n\n// Keep only reminders whose keys are NOT already logged\nreturn remindersToCheck.filter(item => {\n  const currentKey = normalizeKey(item.json.ReminderKey);\n\n  return currentKey && !loggedKeys.has(currentKey);\n});\n"
+      },
+      "id": "24f705c6-f549-4122-9955-54658b481e06",
+      "name": "Filter Unsent Reminders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.EmailAddress }}",
+        "subject": "={{ $json.EmailSubject }}",
+        "message": "={{ $json.GeneratedMessageHtml }}",
+        "options": {}
+      },
+      "id": "9683da62-6613-4b10-a8af-b8458f1a093f",
+      "name": "Send Reminder Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1584,
+        224
+      ],
+      "webhookId": "7a26eca9-4fec-4969-8f71-956a2bdebac8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PkmlsENDDwAdpZqB",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Smart Travel Follow-Up Automation — Test Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SPREADSHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Reminder Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SPREADSHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "CustomerName": "={{ $('Filter Unsent Reminders').all()[$itemIndex].json.CustomerName }}",
+            "EmailAddress": "={{ $('Filter Unsent Reminders').all()[$itemIndex].json.EmailAddress }}",
+            "MessageType": "={{ $('Filter Unsent Reminders').all()[$itemIndex].json.MessageType }}",
+            "TripDate": "={{ $('Filter Unsent Reminders').all()[$itemIndex].json.TripDate }}",
+            "SentAt": "={{ $now.toISO() }}",
+            "Status": "Sent",
+            "ReminderKey": "={{ $('Filter Unsent Reminders').all()[$itemIndex].json.ReminderKey }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "CustomerName",
+              "displayName": "CustomerName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "EmailAddress",
+              "displayName": "EmailAddress",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "MessageType",
+              "displayName": "MessageType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TripDate",
+              "displayName": "TripDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SentAt",
+              "displayName": "SentAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ReminderKey",
+              "displayName": "ReminderKey",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "95aadf92-ed57-453d-9563-3901a628b944",
+      "name": "Append row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1808,
+        224
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bSlEeBuKaLwX90jR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        16,
+        224
+      ],
+      "id": "0d511fb6-39df-45db-aa4c-39e2acbd739b",
+      "name": "Schedule Trigger",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Smart Travel Follow-Up Automation — Test Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SPREADSHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2076740239,
+          "mode": "list",
+          "cachedResultName": "Customer Trips",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SPREADSHEET_ID/edit#gid=2076740239"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        224
+      ],
+      "id": "d565f074-ce37-470b-baaa-44aad53e4bd4",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bSlEeBuKaLwX90jR",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "Check Reminder Dates": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Check Existing Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Existing Reminder": {
+      "main": [
+        [
+          {
+            "node": "Filter Unsent Reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Unsent Reminders": {
+      "main": [
+        [
+          {
+            "node": "Send Reminder Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Reminder Email": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Check Reminder Dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "3d6775a8-2245-4741-95d4-42a4ab4726f4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "42a4f4ac55a9db51a556c08a16ed893a8f6a6d72371413f822c0f76626a00807"
+  },
+  "nodeGroups": [],
+  "id": "hufJgzSz3Xex5Km7",
+  "tags": []
+}
